@@ -55,9 +55,12 @@ public class StringTemplateServlet extends HttpServlet {
     }
 
     private StringBuffer applyVariables(String template, HttpServletRequest req) {
+        // 找出所有 ${ } 形式的字串
         Pattern placeHolders = Pattern.compile("(\\$\\{([^{]+)\\})");
         Matcher m = placeHolders.matcher(template);
         StringBuffer sb = new StringBuffer();
+        
+        // 將找到的字串換成 scope object 內的值 (如果查得到的話)
         while (m.find()) {
             String placeHolder = m.group();
             String variableName = m.group(2).trim();
@@ -69,6 +72,11 @@ public class StringTemplateServlet extends HttpServlet {
     }
 
     private String findValue(HttpServletRequest req, String variableName) {
+        // 取值的設計的優先序為 (這就看 template engine 的作者怎麼設計了)
+        // request parameter
+        // session object
+        // request object
+        
         if (req.getParameter(variableName) != null) {
             return req.getParameter(variableName);
         }
@@ -78,6 +86,8 @@ public class StringTemplateServlet extends HttpServlet {
         if (req.getAttribute(variableName) != null) {
             return req.getAttribute(variableName).toString();
         }
+        
+        // 找不到就換成 unknown
         return "unknown::" + variableName + "::";
     }
 
